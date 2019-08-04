@@ -1,5 +1,9 @@
+
 <template>
-  <div id="app">APPApp</div>
+  <div id="app">
+    <!-- 一级路由对应的组件渲染的位置 -->
+    <router-view></router-view>
+  </div>
 </template>
 
 <script>
