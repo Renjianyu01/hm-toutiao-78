@@ -28,14 +28,15 @@
 </template>
 
 <script>
+import store from '@/store'
 export default {
   data () {
     return {
       // 表单数据对象
       loginForm: {
         // 字段参考接口文档
-        mobile: '',
-        code: ''
+        mobile: '18735624049',
+        code: '246810'
       },
       loginRules: {
         mobile: [
@@ -72,6 +73,7 @@ export default {
               this.loginForm
             )
             .then(res => {
+              store.setUser(res.data.data)
               this.$router.push('/')
             })
             .catch(() => {
