@@ -50,15 +50,21 @@
         <!-- 绑定点击事件，切换侧边的显示与隐藏 -->
         <span class="el-icon-s-fold" @click="toggleMenu()"></span>
         <span class="text">江苏传智播客科技教育有限公司</span>
-        <el-dropdown class="my-dropdown">
+        <!-- 组件中自定义绑定的办法，有默认传参，不需要加（） -->
+        <el-dropdown class="my-dropdown" @command="clickMenu">
           <span class="el-dropdown-link">
-            <img src="../../assets/images/avatar.jpg" alt />
-            下拉菜单
+            <img :src="photo" />
+            {{name}}
             <i class="el-icon-arrow-down el-icon--right"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item icon="el-icon-setting">个人设置</el-dropdown-item>
-            <el-dropdown-item icon="el-icon-unlock">退出登录</el-dropdown-item>
+            <!--
+            click 为DOM原生事件，绑定在定义中为无效事件
+            需要绑定在解析后的DOM，需要使用事件修饰符 native（绑定原生事件）
+            @click.native="setting()
+            @click.native="logout()-->
+             <el-dropdown-item icon="el-icon-setting" command='setting'>个人设置</el-dropdown-item>
+            <el-dropdown-item icon="el-icon-unlock" command='logout'>退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </el-header>
@@ -70,15 +76,37 @@
 </template>
 
 <script>
+import store from '@/store'
 export default {
   data () {
     return {
-      isCollapse: false
+      isCollapse: false,
+      name: '',
+      photo: ''
     }
+  },
+  created () {
+    const user = store.getUser()
+    this.name = user.name
+    this.pthot = user.photo
   },
   methods: {
     toggleMenu () {
       this.isCollapse = !this.isCollapse
+    },
+    setting () {
+      this.$router.push('setting')
+    },
+    logout () {
+      store.clearUser()
+      // this.$router.push('login')
+      this.$router.push({ name: 'login' })
+    },
+    clickMenu (menuType) {
+      // 当点击：command='setting'、command='logout' 时，会把 setting、logout 传给clickMenu方法
+      // menuType ===setting  this.setting
+      // menuType ===logout   this.logout
+      this[menuType]()
     }
   }
 }

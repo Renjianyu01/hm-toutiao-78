@@ -28,7 +28,8 @@
 </template>
 
 <script>
-import store from '@/store'
+// eslint-disable-next-line semi
+import store from '@/store';
 export default {
   data () {
     return {
@@ -64,21 +65,9 @@ export default {
   methods: {
     login () {
       // 对整体表单进行校验
-      this.$refs.loginForm.validate(valid => {
+      this.$refs.loginForm.validate(async valid => {
         if (valid) {
           // console.log('success')
-          this.$http
-            .post(
-              'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
-              this.loginForm
-            )
-            .then(res => {
-              store.setUser(res.data.data)
-              this.$router.push('/')
-            })
-            .catch(() => {
-              this.$message.error('验证失败')
-            })
           // this.$http
           //   .post(
           //     'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
@@ -93,6 +82,17 @@ export default {
           //     // 请求失败 提示  手机号或验证码错误
           //     this.$message.error('手机号或验证码错误')
           //   })
+          // try {可能出现的错误} catch（）{处理错误}
+          try {
+            const {
+              // 结构赋值
+              data: { data }
+            } = await this.$http.post('authorizations', this.loginForm)
+            store.setUser(data)
+            this.$router.push('/')
+          } catch (e) {
+            this.$message.error('手机号验证码错误')
+          }
         }
       })
     }
