@@ -16,17 +16,14 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="频道:">
-          <el-select v-model="reqParams.channel_id" placeholder="请选择">
-            <el-option
-              v-for="item in channelOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            ></el-option>
-          </el-select>
+          <!-- 自己封裝的組件 -->
+          <!-- <my-channel :value='reqParams.channel_id' @input="fn2"></my-channel> -->
+          <my-channel v-model='reqParams.channel_id'></my-channel>
         </el-form-item>
         <el-form-item label="日期:">
           <el-date-picker
+            value-format="yyyy-MM-dd"
+            @change="changeDate"
             v-model="dateArr"
             type="daterange"
             range-separator="至"
@@ -35,7 +32,7 @@
           ></el-date-picker>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary">筛选</el-button>
+          <el-button type="primary" @click="search()">筛选</el-button>
         </el-form-item>
       </el-form>
       <source />
@@ -67,7 +64,7 @@
         <el-table-column label="发布时间" prop="pubdate"></el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
-            <el-button type="primary" icon="el-icon-edit" plain circle></el-button>
+            <el-button type="primary" @click="edit(scope.row.id)" icon="el-icon-edit" plain circle></el-button>
             <el-button type="danger" @click="del(scope.row.id)" icon="el-icon-delete" plain circle></el-button>
           </template>
         </el-table-column>
@@ -92,6 +89,7 @@
 
 <script>
 export default {
+  name: 'art',
   data () {
     return {
       // 收集请求的参数
@@ -104,7 +102,7 @@ export default {
         per_page: 20
       },
       // 频道下拉菜单数据
-      channelOptions: [],
+      // channelOptions: [],
       // 日期数据
       dateArr: [],
       // 文章数据
@@ -113,24 +111,68 @@ export default {
       total: 0
     }
   },
+  // 因为clearable 清空会为空字符串，axios 提交时会报错，后台需要的是id值，我们需要事件监听来确认改变数据的id
+  watch: {
+    'reqParams.channel_id': function (newValue, oldValue) {
+      if (newValue === '') {
+        this.reqParams.channel_id = null
+      }
+    }
+  },
   created () {
     // 获取下来菜单信息
-    this.getChannelOptions()
+    // this.getChannelOptions()
     // 获取文章列表数据
     this.getArticles()
   },
   methods: {
+    // fn2 (val) {
+    //   this.reqParams.channel_id = val
+    // },
+    // 编辑文章
+    edit (id) {
+      this.$router.push('/publish?=' + id)
+    },
+    // 删除文章
+    del (id) {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        await this.$http.delete(`articles/${id}`)
+        // 提示更新列表
+        this.$message.success('删除文章成功')
+        this.getArticles()
+      }).catch(() => {})
+    },
+    // 日期选择 格式与绑定的数据格式一致，自带清空功能，返回的也会是一个空字符
+    // dateArr 是一个数组
+    changeDate (dateArr) {
+      if (dateArr) {
+        this.reqParams.begin_pubdate = dateArr[0]
+        this.reqParams.end_pubdate = dateArr[1]
+      } else {
+        this.reqParams.begin_pubdate = null
+        this.reqParams.end_pubdate = null
+      }
+    },
+    // 筛选功能
+    search () {
+      this.reqParams.page = 1
+      this.getArticles()
+    },
     // 点击当前页 获取新的数据
     changePager (newPager) {
       this.reqParams.page = newPager
       this.getArticles()
     },
-    async getChannelOptions () {
-      const {
-        data: { data }
-      } = await this.$http.get('channels')
-      this.channelOptions = data.channels
-    },
+    // async getChannelOptions () {
+    //   const {
+    //     data: { data }
+    //   } = await this.$http.get('channels')
+    //   this.channelOptions = data.channels
+    // },
     async getArticles () {
       // 请求方式是 get 传递参数为对象 {params：需要传递的参数}
       const {

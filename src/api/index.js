@@ -1,6 +1,7 @@
 // 配置 axios 导出一个配置好的axios
 import axios from 'axios'
 import store from '@/store'
+import JSONBIG from 'json-bigint'
 
 // 进行配置
 // 基准路径
@@ -9,6 +10,14 @@ axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
 // axios.defaults.headers = {
 //   Authorization: `Bearer ${store.getUser().token}`
 // }
+axios.defaults.transformResponse = [(data) => {
+  // return 为渲染后的结果
+  try {
+    return JSONBIG.parse(data)
+  } catch {
+    return data
+  }
+}]
 axios.interceptors.request.use((config) => {
   // 修改  在每次请求前 获取一次token 设置头部
   // 好处：不会覆盖之前的头部信息
